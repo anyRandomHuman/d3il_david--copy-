@@ -89,7 +89,7 @@ class DiffusionAgent(BaseAgent):
 
     def __init__(
         self,
-        obj_dector: DictConfig,
+        obj_detector: DictConfig,
         model: DictConfig,
         optimization: DictConfig,
         trainset: DictConfig,
@@ -135,7 +135,7 @@ class DiffusionAgent(BaseAgent):
             self.device
         )
 
-        self.obj_detector = hydra.utils.instantiate(obj_dector)
+        self.obj_detector = hydra.utils.instantiate(obj_detector)
 
         self.eval_model_name = "eval_best_ddpm.pth"
         self.last_model_name = "last_ddpm.pth"
