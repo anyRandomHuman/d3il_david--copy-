@@ -1,5 +1,5 @@
 defaults:
-  - agents: ddpm_agent
+  - agents: oc_ddpm_agent
 
 agent_name: oc_ddpm
 log_dir: logs/real_robot_${task_suite}/
@@ -136,7 +136,8 @@ trainset:
   to_tensor: ${to_tensor}
   pre_load_num: 20
   preemptive: False
-  feature: 'joint_mask.hdf5'
+  feature: 'masked_imgs.hdf5'
+  # feature: 'joint_mask.hdf5'
   # feature: 'joint_box.hdf5'
   # feature: 'box.hdf5'
   # feature: 'mask.hdf5'
@@ -159,7 +160,8 @@ valset:
   to_tensor: ${to_tensor}
   pre_load_num: 20
   preemptive: False
-  feature: 'joint_mask.hdf5'
+  feature: 'masked_imgs.hdf5'
+  # feature: 'joint_mask.hdf5'
   # feature: 'joint_box.hdf5'
   # feature: 'box.hdf5'
   # feature: 'mask.hdf5'

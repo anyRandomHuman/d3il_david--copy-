@@ -120,14 +120,14 @@ class RealRobot(BaseSim):
             crop_resize=self.crop_resizes[1],
         )
 
-        cv2.imwrite(
-            f"/media/alr_admin/ECB69036B69002EE/inference_record/cam0_{self.i}.png",
-            processed_img0.transpose(1, 2, 0) * 255,
-        )
-        cv2.imwrite(
-            f"/media/alr_admin/ECB69036B69002EE/inference_record/cam1_{self.i}.png",
-            processed_img1.transpose(1, 2, 0) * 255,
-        )
-        self.i += 1
+        # cv2.imwrite(
+        #     f"/media/alr_admin/ECB69036B69002EE/inference_record/cam0_{self.i}.png",
+        #     processed_img0.transpose(1, 2, 0) * 255,
+        # )
+        # cv2.imwrite(
+        #     f"/media/alr_admin/ECB69036B69002EE/inference_record/cam1_{self.i}.png",
+        #     processed_img1.transpose(1, 2, 0) * 255,
+        # )
+        # self.i += 1
 
         return (processed_img0, processed_img1)

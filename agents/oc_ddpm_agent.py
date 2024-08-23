@@ -48,10 +48,10 @@ class DiffusionPolicy(nn.Module):
             B, T, C, H1, W1 = agentview_0.size()
             B, T, C, H2, W2 = agentview_1.size()
 
-            agentview_0 = agentview_0.view(B * T, C, H1, W1)
-            agentview_1 = agentview_1.view(B * T, C, H2, W2)
-            v0_obj_mask = v0_obj_mask.view(B * T, C, H1, W1)
-            v1_obj_mask = v1_obj_mask.view(B * T, C, H2, W2)
+            agentview_0 = agentview_0.view(B * T, C, H1, W1).cuda()
+            agentview_1 = agentview_1.view(B * T, C, H2, W2).cuda()
+            v0_obj_mask = v0_obj_mask.view(B * T, C, H1, W1).cuda()
+            v1_obj_mask = v1_obj_mask.view(B * T, C, H2, W2).cuda()
 
             # state = state.view(B * T, -1)
 
@@ -89,7 +89,6 @@ class DiffusionAgent(BaseAgent):
 
     def __init__(
         self,
-        obj_detector: DictConfig,
         model: DictConfig,
         optimization: DictConfig,
         trainset: DictConfig,
@@ -134,8 +133,6 @@ class DiffusionAgent(BaseAgent):
         self.model.model.max_action = torch.from_numpy(self.scaler.y_bounds[1, :]).to(
             self.device
         )
-
-        self.obj_detector = hydra.utils.instantiate(obj_detector)
 
         self.eval_model_name = "eval_best_ddpm.pth"
         self.last_model_name = "last_ddpm.pth"
@@ -270,6 +267,8 @@ class DiffusionAgent(BaseAgent):
                 # obs = obs[:, :self.obs_seq_len].contiguous()
                 agentview_0 = agentview_0[:, : self.obs_seq_len].contiguous()
                 agentview_1 = agentview_1[:, : self.obs_seq_len].contiguous()
+                v0_obj_mask = v0_obj_mask[:, : self.obs_seq_len].contiguous()
+                v1_obj_mask = v1_obj_mask[:, : self.obs_seq_len].contiguous()
 
                 state = (agentview_0, agentview_1, v0_obj_mask, v1_obj_mask)
 

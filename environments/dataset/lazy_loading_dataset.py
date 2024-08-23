@@ -31,7 +31,7 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
         to_tensor=True,
         pre_load_num=30,
         preemptive=False,
-        feature = None
+        feature=None,
     ):
 
         super().__init__(
@@ -60,10 +60,10 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
         else:
             raise ValueError("Wrong name of task suite.")
 
-        if not if_sim:
-            load_img = -1
-        else:
-            load_img = 1
+        # if not if_sim:
+        #     load_img = -1
+        # else:
+        #     load_img = 1
 
         self.cam_0_resize = (cam_0_w, cam_0_h)
         self.cam_1_resize = (cam_1_w, cam_1_h)
@@ -169,10 +169,15 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
         act = self.actions[i, start:end]
         mask = self.masks[i, start:end]
 
-        if feature:
-            feature = read_feature(traj_dir, self.feature, start, end, self.cams_resize, self.device)
+        if self.feature:
+            # feature = read_feature(
+            #     traj_dir, self.feature, start, end, self.cams_resize, self.device
+            # )
+            feature = read_img_from_hdf5(
+                traj_dir, start, end, self.cams_resize, self.device, self.to_tensor
+            )
 
             cam_0_feature = feature[0]
             cam_1_feature = feature[1]
 
-        return cam_0, cam_1, act, mask
+        return cam_0, cam_1, cam_0_feature, cam_1_feature, act, mask
