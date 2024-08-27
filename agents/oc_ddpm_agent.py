@@ -83,6 +83,77 @@ class DiffusionPolicy(nn.Module):
 
     def get_params(self):
         return self.parameters()
+    
+class Timecat_DiffusionPolicy(nn.Module):
+    def __init__(
+        self,
+        model: DictConfig,
+        obs_encoder: DictConfig,
+        obs_encoder_: DictConfig,
+        visual_input: bool = False,
+        device: str = "cpu",
+    ):
+        super(DiffusionPolicy, self).__init__()
+
+        self.visual_input = visual_input
+        self.obs_encoder = hydra.utils.instantiate(obs_encoder).to(device)
+        self.obs_encoder_ = hydra.utils.instantiate(obs_encoder_).to(device)
+        self.model = hydra.utils.instantiate(model).to(device)
+
+    def forward(self, inputs, goal, action=None, if_train=False):
+        # encode state and visual inputs
+        # the encoder should be shared by all the baselines
+
+        if self.visual_input:
+            agentview_0, agentview_1, v0_obj_mask, v1_obj_mask = inputs
+
+            B, T, C, H1, W1 = agentview_0.size()
+            B, T, C, H2, W2 = agentview_1.size()
+
+            agentview_0 = agentview_0.view(B * T, C, H1, W1).cuda()
+            agentview_1 = agentview_1.view(B * T, C, H2, W2).cuda()
+            v0_obj_mask = v0_obj_mask.view(B * T, C, H1, W1).cuda()
+            v1_obj_mask = v1_obj_mask.view(B * T, C, H2, W2).cuda()
+
+            # state = state.view(B * T, -1)
+
+            obs_dict = {
+                "agentview_0": agentview_0,
+                "agentview_1": agentview_1,
+            }
+            # "robot_ee_pos": state}
+
+            obs1 = self.obs_encoder(obs_dict)
+            obs2 = self.obs_encoder_(obs_dict)
+
+            obs_dict = {
+                "v0_obj_mask": v0_obj_mask,
+                "v1_obj_mask": v1_obj_mask,
+            }
+
+            f1 = self.obs_encoder(obs_dict)
+            f2 = self.obs_encoder_(obs_dict)
+
+            obs1 = torch.cat((obs1, f1), 0)
+            obs2 = torch.cat((obs2, f2), 0)
+
+            obs = torch.cat([obs1, obs2], dim=-1)
+
+            obs = obs.view(B, T, -1)
+
+        else:
+            obs = self.obs_encoder(inputs)
+
+        if if_train:
+            return self.model.loss(action, obs, goal)
+
+        # make prediction
+        pred = self.model(obs, goal)
+
+        return pred
+
+    def get_params(self):
+        return self.parameters()
 
 
 class DiffusionAgent(BaseAgent):
