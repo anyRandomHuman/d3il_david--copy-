@@ -77,7 +77,9 @@ class Object_Detector:
     def joint_feature(features):
         joint_mask = torch.zeros(features.shape[:-1])
         for i in range(features.shape[-1]):
-            joint_mask = torch.logical_or(joint_mask, features[:, :, i])
+            joint_mask = torch.logical_or(
+                joint_mask, torch.from_numpy(features[:, :, i])
+            )
         return joint_mask
 
     def get_masked_img(self, feature):

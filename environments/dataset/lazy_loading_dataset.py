@@ -156,7 +156,7 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
         traj_dir = self.traj_dirs[i]
 
         cams_imgs = read_img_from_hdf5(
-            traj_dir,
+            traj_dir / "imgs.hdf5",
             start,
             end,
             self.cams_resize,
@@ -174,7 +174,12 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
             #     traj_dir, self.feature, start, end, self.cams_resize, self.device
             # )
             feature = read_img_from_hdf5(
-                traj_dir, start, end, self.cams_resize, self.device, self.to_tensor
+                traj_dir / "imgs.hdf5",
+                start,
+                end,
+                self.cams_resize,
+                self.device,
+                self.to_tensor,
             )
 
             cam_0_feature = feature[0]

@@ -122,12 +122,16 @@ class RealRobot(BaseSim):
             crop_resize=self.crop_resizes[1],
         )
 
-        self.detector.predict(np.transpose(processed_img0, (1, 2, 0)), self.sort)
+        self.detector.predict(
+            np.transpose(processed_img0, (1, 2, 0)).astype(np.uint8), self.sort
+        )
         f0 = self.detector.get_mask_feature(self.top_n)
         f0 = self.detector.joint_feature(f0)
         masked0 = self.detector.get_masked_img(f0)
 
-        self.detector.predict(np.transpose(processed_img1, (1, 2, 0)), self.sort)
+        self.detector.predict(
+            np.transpose(processed_img1, (1, 2, 0)).astype(np.uint8), self.sort
+        )
         f1 = self.detector.get_mask_feature(self.top_n)
         f1 = self.detector.joint_feature(f1)
         masked1 = self.detector.get_masked_img(f1)

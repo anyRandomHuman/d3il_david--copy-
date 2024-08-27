@@ -15,7 +15,7 @@ def read_img_from_hdf5(
     """
     path =path to traj dir
     """
-    f = h5py.File(os.path.join(path, "imgs.hdf5"), "r")
+    f = h5py.File(path, "r")
     cams = []
     for i, cam in enumerate(list(f.keys())):
         arr = f[cam][start:end]
@@ -77,4 +77,4 @@ def read_feature(path, feature, start, end, cam_resizes, device, to_tensor=True)
 if __name__ == "__main__":
     path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_space_hdf5/insertion/2024_07_04-16_02_30"
 
-    cam0, cam1 = read_img_from_hdf5(path, 0, 1, [256, 256], "cpu")
+    cam0, cam1 = read_img_from_hdf5(os.path.join(path, 'imgs.hdf5'), 0, 1, [256, 256], "cpu")
