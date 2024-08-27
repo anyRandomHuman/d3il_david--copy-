@@ -28,4 +28,4 @@ environments/dataset/data/stacking/vision_data/*
 real_robot_env/*
 configs/real_robot_config.yaml
 weights/*
-sam_models/*
+detector_models/*

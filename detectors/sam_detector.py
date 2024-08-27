@@ -18,18 +18,20 @@ class Object_Detector:
         self,
         device="cuda",
         to_tensor=False,
-        sam_checkpoint="/home/alr_admin/david/praktikum/d3il_david/sam_models/sam_vit_b.pth",
+        path="/home/alr_admin/david/praktikum/d3il_david/sam_models/sam_vit_b.pth",
         model_type="vit_b",
+        sort="predicted_iou",
     ):
         self.to_tensor = to_tensor
-        self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+        self.sam = sam_model_registry[model_type](checkpoint=path)
         self.sam.to(device=device)
         self.mask_generator = SamAutomaticMaskGenerator(self.sam)
+        self.sort = sort
 
-    def predict(self, img, sort="predicted_iou"):
+    def predict(self, img):
         self.img = img
         outputs = self.mask_generator.generate(img)
-        self.prediction = sorted(outputs, key=(lambda x: x[sort]), reverse=True)
+        self.prediction = sorted(outputs, key=(lambda x: x[self.sort]), reverse=True)
 
     def get_box_feature(self, top_n):
         shape = tuple(self.prediction[0]["segmentation"].shape[0:2]) + (top_n,)
