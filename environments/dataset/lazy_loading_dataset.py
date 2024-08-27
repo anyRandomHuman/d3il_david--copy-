@@ -71,8 +71,13 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
         self.traj_dirs = list(data_dir.iterdir())
         self.to_tensor = to_tensor
         self.feature = feature
+        if self.feature == 'joint_mask.pt':
+            self.features = []
 
         for traj_dir in tqdm(self.traj_dirs):
+            if self.feature == 'joint_mask.pt':
+                # x0,y0,x1,y1
+                self.features.append(torch.load(traj_dir/ self.feature)) # shape (cam,num_pic, max_num_box,4)
             # traj_img_index = []
             # image_path = traj_dir / "images"
             # image_hdf5 = traj_dir / "imgs.hdf5"
@@ -168,13 +173,25 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
 
         act = self.actions[i, start:end]
         mask = self.masks[i, start:end]
+        if not self.feature:
+            return cam_0, cam_1, act, mask
 
-        if self.feature:
+        if self.feature == 'Bboxes.pt':
+            feature = []
+            for j in range(self.feature[0].shape[1]):
+                cam = self.features[i][j]
+                joint_box_mask = torch.zeros(self.cams_resize[j] + (1,))
+                for box in cam:
+                    joint_box_mask[box[1] : box[3], box[0] : box[2]] = 1
+                feature.append(joint_box_mask)
+            cam_0_feature = feature[0]
+            cam_1_feature = feature[1]
+        elif self.feature == 'masked_imgs.hdf5':
             # feature = read_feature(
             #     traj_dir, self.feature, start, end, self.cams_resize, self.device
             # )
             feature = read_img_from_hdf5(
-                traj_dir / "imgs.hdf5",
+                traj_dir / self.feature,
                 start,
                 end,
                 self.cams_resize,
