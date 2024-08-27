@@ -83,7 +83,8 @@ class DiffusionPolicy(nn.Module):
 
     def get_params(self):
         return self.parameters()
-    
+
+
 class Timecat_DiffusionPolicy(nn.Module):
     def __init__(
         self,
@@ -244,6 +245,8 @@ class DiffusionAgent(BaseAgent):
 
         self.bp_image_context = deque(maxlen=self.obs_seq_len)
         self.inhand_image_context = deque(maxlen=self.obs_seq_len)
+        self.bp_feature_context = deque(maxlen=obs_seq_len)
+        self.inhand_feature_context = deque(maxlen=obs_seq_len)
         self.des_robot_pos_context = deque(maxlen=self.window_size)
 
         self.obs_context = deque(maxlen=self.obs_seq_len)
@@ -452,25 +455,38 @@ class DiffusionAgent(BaseAgent):
         # scale data if necessarry, otherwise the scaler will return unchanged values
 
         if if_vision:
-            bp_image, inhand_image = state
+            bp_image, inhand_image, masked0, masked1 = state
 
             bp_image = torch.from_numpy(bp_image).to(self.device).float().unsqueeze(0)
             inhand_image = (
                 torch.from_numpy(inhand_image).to(self.device).float().unsqueeze(0)
             )
+            bp_mask = torch.from_numpy(masked0).to(self.device).float().unsqueeze(0)
+            inhand_mask = torch.from_numpy(masked1).to(self.device).float().unsqueeze(0)
+
             # des_robot_pos = torch.from_numpy(des_robot_pos).to(self.device).float().unsqueeze(0)
 
             # des_robot_pos = self.scaler.scale_input(des_robot_pos)
 
             self.bp_image_context.append(bp_image)
             self.inhand_image_context.append(inhand_image)
+            self.bp_feature_context.append(bp_mask)
+            self.inhand_feature_context.append(inhand_mask)
             # self.des_robot_pos_context.append(des_robot_pos)
 
             bp_image_seq = torch.stack(tuple(self.bp_image_context), dim=1)
             inhand_image_seq = torch.stack(tuple(self.inhand_image_context), dim=1)
+            bp_feature_seq = torch.stack(tuple(self.bp_feature_context), dim=1)
+            inhand_feature_seq = torch.stack(tuple(self.inhand_feature_context), dim=1)
+
             # des_robot_pos_seq = torch.stack(tuple(self.des_robot_pos_context), dim=1)
 
-            input_state = (bp_image_seq, inhand_image_seq)
+            input_state = (
+                bp_image_seq,
+                inhand_image_seq,
+                bp_feature_seq,
+                inhand_feature_seq,
+            )
         else:
             obs = torch.from_numpy(state).float().to(self.device).unsqueeze(0)
             obs = self.scaler.scale_input(obs)

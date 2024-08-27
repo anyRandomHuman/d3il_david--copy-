@@ -68,7 +68,7 @@ def test_agent_on_train_data(path, agent):
 
 
 # @hydra.main(config_path="configs", config_name="real_robot_config.yaml")
-@hydra.main(config_path="configs", config_name="pick_placing_config.yaml")
+@hydra.main(config_path="configs", config_name="oc_pick_placing_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     np.random.seed(cfg.seed)
@@ -89,17 +89,25 @@ def main(cfg: DictConfig) -> None:
     agent = hydra.utils.instantiate(cfg.agents)
     agent.load_pretrained_model(
         "/home/alr_admin/david/praktikum/d3il_david/weights",
-        sv_name="pickplacing_ddpm_100data_100epoch.pth",
+        sv_name="pickPlacing_oc_100data_100epoch.pth",
     )
 
-    env_sim = hydra.utils.instantiate(cfg.simulation)
-    env_sim.test_agent(agent)
+    oc = True
 
-    # path = "/media/alr_admin/Data/atalay/new_data/pickPlacing/2024_08_05-13_22_36"
-    # test_agent_on_train_data(
-    #     path,
-    #     agent,
-    # )
+    env_sim = hydra.utils.instantiate(cfg.simulation)
+
+    if oc:
+        det = hydra.utils.instantiate(cfg.detectors)
+        env_sim.set_detector(det)
+
+    # env_sim.test_agent(agent)
+
+    path = "/media/alr_admin/Data/atalay/new_data/pickPlacing/2024_08_05-13_22_36"
+    predict = 
+    test_agent_on_train_data(
+        path,
+        agent,
+    )
 
     log.info("done")
 

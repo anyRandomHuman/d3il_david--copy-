@@ -54,7 +54,7 @@ class Lazy_Loading_Dataset(TrajectoryDataset):
             #     "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5/cupStacking"
             # )
         elif task_suite == "pickPlacing":
-            data_dir = Path(data_directory + "/banana")
+            data_dir = Path(data_directory + "/pickPlacing")
         elif task_suite == "insertion":
             data_dir = Path(data_directory + "/insertion")
         else:

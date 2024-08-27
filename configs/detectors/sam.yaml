@@ -1,0 +1,4 @@
+_target_: detectors.sam_detector.Object_Detector
+
+device: cuda
+to_tensor: False

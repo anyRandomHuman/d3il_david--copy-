@@ -1,3 +1,5 @@
+# %%
+
 import numpy as np
 import cv2
 import torch
@@ -14,27 +16,22 @@ ALL_FEATURE = "all"
 class Object_Detector:
     def __init__(
         self,
-        is_joint,
         device="cuda",
         to_tensor=False,
-        sam_checkpoint="sam_models/sam_vit_b.pth",
+        sam_checkpoint="/home/alr_admin/david/praktikum/d3il_david/sam_models/sam_vit_b.pth",
         model_type="vit_b",
     ):
-        self.is_joint = is_joint
         self.to_tensor = to_tensor
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
         self.sam.to(device=device)
         self.mask_generator = SamAutomaticMaskGenerator(self.sam)
 
-    def predict(self, img):
+    def predict(self, img, sort="predicted_iou"):
+        self.img = img
         outputs = self.mask_generator.generate(img)
-        self.prediction = sorted(
-            outputs, key=(lambda x: x["stability_score"]), reverse=True
-        )
+        self.prediction = sorted(outputs, key=(lambda x: x[sort]), reverse=True)
 
     def get_box_feature(self, top_n):
-        if top_n < 0:
-            top_n = len(self.prediction) + top_n
         shape = tuple(self.prediction[0]["segmentation"].shape[0:2]) + (top_n,)
         features = np.zeros(shape)
 
@@ -42,7 +39,12 @@ class Object_Detector:
             return features
         for i in range(top_n):
             ann = self.prediction[i]
+
+            if ann["area"] > 1500 or ann["area"] < 100:
+                continue
             b = ann["bbox"]
+            for j in range(len(b)):
+                b[j] = int(b[j])
             features[b[1] : b[1] + b[3], b[0] : b[0] + b[2], i] = 1
 
         if self.to_tensor:
@@ -50,46 +52,59 @@ class Object_Detector:
         return features
 
     def get_mask_feature(self, top_n):
-        if top_n < 0:
-            top_n = len(self.prediction) + top_n
+        if top_n == -1:
+            top_n = len(self.prediction)
         shape = tuple(self.prediction[0]["segmentation"].shape[0:2]) + (top_n,)
         features = np.zeros(shape)
 
         if not len(self.prediction):
             return features
-        for i in range(top_n):
-            ann = self.prediction[i]
+        found = 0
+        j = 0
+        while found < top_n and j < len(self.prediction):
+            ann = self.prediction[j]
+            j += 1
+            if ann["area"] > 2500 or ann["area"] < 50:
+                continue
+            found += 1
             m = ann["segmentation"]
-            features[m, i] = 1
+            features[m, found - 1] = 1
         if self.to_tensor:
             features = torch.from_numpy(features).int()
         return features
 
-    def joint_feature(self, features):
+    @staticmethod
+    def joint_feature(features):
         joint_mask = torch.zeros(features.shape[:-1])
-        if not self.to_tensor:
-            features = torch.from_numpy(features)
         for i in range(features.shape[-1]):
             joint_mask = torch.logical_or(joint_mask, features[:, :, i])
         return joint_mask
 
-    def get_feature(self, img):
-        features = self.extract_feature(img)
-        if self.is_joint:
-            features = self.joint_feature(features)
-        if self.to_tensor:
-            features = torch.from_numpy(features)
-        return features
+    def get_masked_img(self, feature):
+        img = (
+            torch.where(
+                torch.unsqueeze(feature, -1).repeat_interleave(3, -1),
+                torch.from_numpy(self.img),
+                torch.zeros(self.img.shape),
+            )
+            .int()
+            .numpy()
+        )
+        return img.astype(np.uint8)
 
 
 if __name__ == "__main__":
-    img = cv2.imread("moving_cup.jpg")
 
-    obj_det = Object_Detector(True, to_tensor=False)
-    obj_det.predict(img)
-    mask = obj_det.get_mask_feature(9)
+    img = cv2.imread("38.png")
+
+    obj_det = Object_Detector(device="cuda", to_tensor=True)
+
+    iou = "predicted_iou"
+    stability = "stability_score"
+    mask = obj_det.predict(img, sort=iou)
+    mask = obj_det.get_mask_feature(-1)
     mask = obj_det.joint_feature(mask)
-    mask = np.expand_dims(mask, -1)
-    mask = np.repeat(mask, 3, axis=-1)
-    cv2.imshow("1", np.where(mask, img, np.zeros(img.shape)).astype(np.uint8))
+    img = obj_det.get_masked_img(mask)
+
+    cv2.imshow("1", img)
     cv2.waitKey(0)
