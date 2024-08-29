@@ -18,7 +18,7 @@ class Object_Detector:
         self,
         device="cuda",
         to_tensor=False,
-        path="/home/alr_admin/david/praktikum/d3il_david/sam_models/sam_vit_b.pth",
+        path="/home/alr_admin/david/praktikum/d3il_david/detector_models/sam_vit_b.pth",
         model_type="vit_b",
         sort="predicted_iou",
     ):
@@ -99,13 +99,13 @@ class Object_Detector:
 
 if __name__ == "__main__":
 
-    img = cv2.imread("38.png")
-
-    obj_det = Object_Detector(device="cuda", to_tensor=True)
+    img = cv2.imread("0.png")
 
     iou = "predicted_iou"
     stability = "stability_score"
-    mask = obj_det.predict(img, sort=iou)
+    obj_det = Object_Detector(device="cuda", to_tensor=False, sort=iou)
+
+    mask = obj_det.predict(img)
     mask = obj_det.get_mask_feature(-1)
     mask = obj_det.joint_feature(mask)
     img = obj_det.get_masked_img(mask)

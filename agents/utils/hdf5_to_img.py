@@ -74,7 +74,25 @@ def read_feature(path, feature, start, end, cam_resizes, device, to_tensor=True)
     return slices
 
 
+def preprocess_img_no_crop(
+    img,
+    resize=(256, 256),
+    device="cuda",
+    to_tensor=True,
+):
+    img = cv2.resize(img, resize)
+
+    img = img.transpose((2, 0, 1)) / 255.0
+
+    if to_tensor:
+        img = torch.from_numpy(img).to(device).float().unsqueeze(0)
+
+    return img
+
+
 if __name__ == "__main__":
     path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_space_hdf5/insertion/2024_07_04-16_02_30"
 
-    cam0, cam1 = read_img_from_hdf5(os.path.join(path, 'imgs.hdf5'), 0, 1, [256, 256], "cpu")
+    cam0, cam1 = read_img_from_hdf5(
+        os.path.join(path, "imgs.hdf5"), 0, 1, [256, 256], "cpu"
+    )

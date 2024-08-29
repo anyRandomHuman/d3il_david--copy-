@@ -21,10 +21,15 @@ torch.cuda.empty_cache()
 
 
 def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
+    cam_resizes = [resize, resize]
     joint_poses = torch.load(path + "/leader_joint_pos.pt")
     if os.path.exists(os.path.join(path, "imgs.hdf5")):
         imgs = read_img_from_hdf5(
-            os.path.join(path, "imgs.hdf5"), 0, -1, to_tensor=False
+            os.path.join(path, "imgs.hdf5"),
+            0,
+            -1,
+            to_tensor=False,
+            cam_resizes=cam_resizes,
         )
     else:
         imgs = []
@@ -40,15 +45,40 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
                     cams.append(img)
                 imgs.append(cams)
 
-    if feature_path:
+    if feature_path == "masked_imgs.hdf5":
         features = read_img_from_hdf5(
             os.path.join(feature_path, "masked_imgs.hdf5"),
             0,
             -1,
             to_tensor=False,
-            cam_resizes=[resize, resize],
+            cam_resizes=cam_resizes,
         )
         state_pairs = list(zip(imgs[0], imgs[1], features[0], features[1], joint_poses))
+    elif feature_path == "Bboxes.pt":
+        traj_boxes = torch.load(path + "/Bboxes.pt").int()
+        traj_features = []
+        for cam in range(len(imgs)):
+            features = []
+            for i in range(len(imgs[cam])):
+                boxes = traj_boxes[cam, i]
+                feature = np.zeros((3, resize[1], resize[0]), dtype=np.uint8)
+
+                for box in boxes:
+                    feature[:, box[1] : box[3], box[0] : box[2]] = 1
+                feature = np.where(feature, imgs[cam][i], feature)
+                features.append(feature)
+            traj_features.append(features)
+
+        state_pairs = list(
+            zip(
+                imgs[0],
+                imgs[1],
+                traj_features[0],
+                traj_features[1],
+                joint_poses,
+            )
+        )
+
     else:
         state_pairs = list(zip(imgs[0], imgs[1], joint_poses))
 
@@ -64,7 +94,6 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
         pred_joint_poses[i] = pred_joint_pos
 
     fig, axises = plt.subplots(7)
-    axises.legend()
     for i in range(7):
         ax = axises[i]
         ax.plot(
@@ -97,7 +126,7 @@ def main(cfg: DictConfig) -> None:
     agent = hydra.utils.instantiate(cfg.agents)
     agent.load_pretrained_model(
         "/home/alr_admin/david/praktikum/d3il_david/weights",
-        sv_name="pickPlacing_oc_100data_100epoch.pth",
+        sv_name="pickPlacing_oc_box_100data_100epoch.pth",
     )
 
     oc = True
@@ -110,8 +139,8 @@ def main(cfg: DictConfig) -> None:
 
     # env_sim.test_agent(agent)
 
-    path = "/media/alr_admin/Data/atalay/new_data/pickPlacing/2024_08_05-13_22_36"
-    feature_path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing_features/2024_08_05-13_22_36"
+    path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-13_22_36"
+    feature_path = "Bboxes.pt"
     test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
 
     log.info("done")

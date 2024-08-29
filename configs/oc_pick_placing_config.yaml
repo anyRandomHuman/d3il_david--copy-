@@ -11,7 +11,7 @@ agent_name: pick_placing_oc_ddpm_agent
 log_dir: logs/real_robot_${task_suite}/
 
 #train_data_path: /home/temp_store/real_robot_data
-train_data_path: /media/alr_admin/Data/atalay/new_data  # just for dataset init
+train_data_path: /media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled  # just for dataset init
 
 task_suite: pickPlacing  # pickPlacing cupStacking insertion
 if_sim: False
@@ -117,12 +117,12 @@ obs_seq: 1
 train_action_seq: 5
 inference_action_seq: ${train_action_seq}
 
-cam_num: 2
 to_tensor: True
 
 # Dataset
 trainset:
-  _target_: environments.dataset.lazy_loading_dataset.Lazy_Loading_Dataset
+  # _target_: environments.dataset.lazy_loading_dataset.Lazy_Loading_Dataset
+  _target_: environments.dataset.oc_box_partial_loading_dataset.Partial_Loading_Dataset
   data_directory: ${train_data_path}
   task_suite: ${task_suite}
   obs_dim: ${obs_dim}
@@ -134,15 +134,13 @@ trainset:
   cam_0_h: 256
   cam_1_w: 128
   cam_1_h: 256
-  cam_num: ${cam_num}
   to_tensor: ${to_tensor}
   pre_load_num: 20
-  preemptive: False
-  feature: 'masked_imgs.hdf5'
 
 
 valset:
-  _target_: environments.dataset.lazy_loading_dataset.Lazy_Loading_Dataset
+  # _target_: environments.dataset.lazy_loading_dataset.Lazy_Loading_Dataset
+  _target_: environments.dataset.oc_box_partial_loading_dataset.Partial_Loading_Dataset
   data_directory: ${train_data_path}
   task_suite: ${task_suite}
   obs_dim: ${obs_dim}
@@ -154,11 +152,9 @@ valset:
   cam_0_h: 256
   cam_1_w: 128
   cam_1_h: 256
-  cam_num: ${cam_num}
   to_tensor: ${to_tensor}
   pre_load_num: 20
-  preemptive: False
-  feature: 'masked_imgs.hdf5'
+
 
 
 

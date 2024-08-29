@@ -31,7 +31,7 @@ class Yolo_Detrector(Object_Detector):
         return features
 
     def get_Bbox(self):
-        return self.prediction[0].boxes.xyxy
+        return self.prediction[0].boxes.xyxy.int()
 
     @staticmethod
     def joint_feature(features):
