@@ -53,7 +53,7 @@ class Partial_Loading_Dataset(TrajectoryDataset):
         if task_suite == "cupStacking":
             data_dir = Path(data_directory + "/cupstacking")
         elif task_suite == "pickPlacing":
-            data_dir = Path(data_directory + "/banana")
+            data_dir = Path(data_directory + "/pickPlacing")
         elif task_suite == "insertion":
             data_dir = Path(data_directory + "/insertion")
         else:
