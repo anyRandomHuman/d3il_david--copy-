@@ -111,8 +111,8 @@ class Partial_Loading_Dataset(TrajectoryDataset):
             elif Path(image_hdf5).exists():
                 with h5py.File(image_hdf5, "r") as f:
                     cams = []
-                    for j, dataset in enumerate(list(f.keys())[:cam_num]):
-                        cams.append(f[dataset])
+                    for dataset in list(f.keys()):
+                        cams.append(f[dataset][:])
                     self.trajs.append(cams)
 
         self.actions = torch.cat(actions).to(device).float()
@@ -170,7 +170,7 @@ class Partial_Loading_Dataset(TrajectoryDataset):
                 imgs = []
                 fs = []
                 for index in range(start, end):
-                    img = self.traj_dirs[i][cam][index]
+                    img = self.trajs[i][cam][index]
                     nparr = cv2.imdecode(img, 1)
                     processed = preprocess_img_no_crop(
                         nparr,
