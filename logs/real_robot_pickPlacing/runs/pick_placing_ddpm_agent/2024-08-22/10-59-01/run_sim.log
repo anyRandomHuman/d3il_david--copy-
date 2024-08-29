@@ -1,8 +1,0 @@
-[2024-08-22 10:59:03,271][agents.models.oc_ddpm.oc_ddpm][INFO] - number of parameters: 1.884168e+06
-[2024-08-22 10:59:03,319][root][INFO] - Loading Real Robot Dataset
-[2024-08-22 10:59:04,638][agents.utils.scaler][INFO] - Datset Info: action min: [-1.855083   -2.23673945 -2.33576624 -3.56145759 -3.028111   -2.83103161
- -2.41632855 -1.18996329] and max: [3.04663221 2.27174504 2.2135836  2.6984154  5.88154965 1.65744888
- 2.24860748 0.84014453]
-[2024-08-22 10:59:04,638][agents.utils.scaler][INFO] - Training dataset size: target (25227, 8)
-[2024-08-22 10:59:04,644][agents.base_agent][INFO] - The model has a total amount of 24286664 parameters
-[2024-08-22 10:59:04,768][agents.ddpm_agent][INFO] - Loaded pre-trained model parameters

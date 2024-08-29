@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class RealRobot(BaseSim):
-    def __init__(self, device: str, resizes, crops, crop_resizes, top_n, sort):
+    def __init__(self, device: str, resizes, crops, crop_resizes, top_n):
         super().__init__(seed=-1, device=device)
 
         self.p4 = FrankaArm(
@@ -43,7 +43,6 @@ class RealRobot(BaseSim):
 
         self.i = 0
         self.top_n = top_n
-        self.sort = sort
 
         self.resizes = resizes
         # crop in the order of y, x
@@ -121,14 +120,13 @@ class RealRobot(BaseSim):
             crop=self.crops[1],
             crop_resize=self.crop_resizes[1],
         )
-
         self.detector.predict(np.transpose(processed_img0, (1, 2, 0)).astype(np.uint8))
-        f0 = self.detector.get_mask_feature(self.top_n)
+        f0 = self.detector.get_feature(self.top_n)
         f0 = self.detector.joint_feature(f0)
         masked0 = self.detector.get_masked_img(f0)
 
         self.detector.predict(np.transpose(processed_img1, (1, 2, 0)).astype(np.uint8))
-        f1 = self.detector.get_mask_feature(self.top_n)
+        f1 = self.detector.get_feature(self.top_n)
         f1 = self.detector.joint_feature(f1)
         masked1 = self.detector.get_masked_img(f1)
 

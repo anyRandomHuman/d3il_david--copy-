@@ -135,10 +135,20 @@ class Timecat_DiffusionPolicy(nn.Module):
             f1 = self.obs_encoder(obs_dict)
             f2 = self.obs_encoder_(obs_dict)
 
-            obs1 = torch.cat((obs1, f1), 0)
-            obs2 = torch.cat((obs2, f2), 0)
+            ##########################################
+            # baseline time cat
 
-            obs = torch.cat([obs1, obs2], dim=-1)
+            obs = torch.cat([obs1, obs2], dim=1)
+
+            # plus mask
+            # obs = torch.cat([f1, obs1, f2, obs2], dim=1)
+
+            # plus mask 2
+
+            # obs_1 = torch.cat([f1, obs1], dim=-1)
+            # obs_2 = torch.cat([f2, obs2], dim=-1)
+
+            # obs = torch.cat([obs_1, obs_2], dim=1)
 
             obs = obs.view(B, T, -1)
 

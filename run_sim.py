@@ -131,17 +131,17 @@ def main(cfg: DictConfig) -> None:
 
     oc = True
 
-    # env_sim = hydra.utils.instantiate(cfg.simulation)
+    env_sim = hydra.utils.instantiate(cfg.simulation)
 
-    # if oc:
-    #     det = hydra.utils.instantiate(cfg.detectors)
-    #     env_sim.set_detector(det)
+    if oc:
+        det = hydra.utils.instantiate(cfg.detectors)
+        env_sim.set_detector(det)
 
-    # env_sim.test_agent(agent)
+    env_sim.test_agent(agent)
 
-    path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-13_22_36"
-    feature_path = "Bboxes.pt"
-    test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
+    # path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-13_22_36"
+    # feature_path = "Bboxes.pt"
+    # test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
 
     log.info("done")
 

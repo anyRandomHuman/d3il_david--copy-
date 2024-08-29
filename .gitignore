@@ -29,3 +29,4 @@ real_robot_env/*
 configs/real_robot_config.yaml
 weights/*
 detector_models/*
+logs/*

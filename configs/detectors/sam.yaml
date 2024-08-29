@@ -2,5 +2,5 @@ _target_: detectors.sam_detector.Object_Detector
 device: cuda
 to_tensor: False
 sort: predicted_iou
-path: /home/alr_admin/david/praktikum/d3il_david/sam_models/sam_vit_b.pth
+path: /home/alr_admin/david/praktikum/d3il_david/detector_models/sam_vit_b.pth
 model_type: vit_b

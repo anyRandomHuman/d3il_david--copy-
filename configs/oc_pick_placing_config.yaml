@@ -1,6 +1,6 @@
 defaults:
  - agents: pick_placing_oc_ddpm_agent
- - detectors: sam
+ - detectors: yolo
 #  - agents: pick_placing_oc_ddpm_timecat_agent
   # - agents: mamba_cross_agent
 #  - agents: mamba_only_agent
@@ -165,3 +165,4 @@ simulation:
   resizes: [[128, 256], [128, 256]]
   crops: [[0,null, 100,370],[0,null, 100,370]]
   crop_resizes: [[512, 512], [512, 512]]
+  top_n: -1

@@ -53,7 +53,7 @@ class Object_Detector:
             features = torch.from_numpy(features).int()
         return features
 
-    def get_mask_feature(self, top_n):
+    def get_feature(self, top_n):
         if top_n == -1:
             top_n = len(self.prediction)
         shape = tuple(self.prediction[0]["segmentation"].shape[0:2]) + (top_n,)
@@ -75,26 +75,26 @@ class Object_Detector:
             features = torch.from_numpy(features).int()
         return features
 
-    @staticmethod
-    def joint_feature(features):
-        joint_mask = torch.zeros(features.shape[:-1])
-        for i in range(features.shape[-1]):
-            joint_mask = torch.logical_or(
-                joint_mask, torch.from_numpy(features[:, :, i])
-            )
+    def joint_feature(self, features):
+        if self.to_tensor:
+            joint_mask = torch.zeros(features.shape[:-1])
+            for i in range(features.shape[-1]):
+                joint_mask = torch.logical_or(joint_mask, features[:, :, i])
+        else:
+            joint_mask = np.zeros(features.shape[:-1])
+            for i in range(features.shape[-1]):
+                joint_mask = np.logical_or(joint_mask, features[:, :, i])
         return joint_mask
 
     def get_masked_img(self, feature):
-        img = (
-            torch.where(
-                torch.unsqueeze(feature, -1).repeat_interleave(3, -1),
-                torch.from_numpy(self.img),
-                torch.zeros(self.img.shape),
-            )
-            .int()
-            .numpy()
+        if self.to_tensor:
+            feature = torch.from_numpy(feature)
+        img = np.where(
+            np.expand_dims(feature, -1).repeat(3, -1),
+            self.img,
+            np.zeros(self.img.shape),
         )
-        return img.astype(np.uint8)
+        return img
 
 
 if __name__ == "__main__":

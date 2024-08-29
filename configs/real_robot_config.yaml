@@ -136,7 +136,7 @@ trainset:
   to_tensor: ${to_tensor}
   pre_load_num: 20
   preemptive: False
-  feature: 'masked_imgs.hdf5'
+  # feature: 'masked_imgs.hdf5'
   # feature: 'joint_mask.hdf5'
   # feature: 'joint_box.hdf5'
   # feature: 'box.hdf5'
@@ -164,7 +164,7 @@ valset:
   # feature: 'joint_box.hdf5'
   # feature: 'box.hdf5'
   # feature: 'mask.hdf5'
-  feature: 'masked_imgs.hdf5'
+  # feature: 'masked_imgs.hdf5'
 
 
 

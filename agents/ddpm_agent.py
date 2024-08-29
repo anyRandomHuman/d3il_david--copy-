@@ -64,7 +64,9 @@ class DiffusionPolicy(nn.Module):
             obs1 = self.obs_encoder(obs_dict)
             obs2 = self.obs_encoder_(obs_dict)
 
-            obs = torch.cat([obs1, obs2], dim=-1)
+            # obs = torch.cat([obs1, obs2], dim=-1)
+
+            obs = torch.cat([obs1, obs2], dim=1)
 
             obs = obs.view(B, T, -1)
 

@@ -1,0 +1,4 @@
+_target_: detectors.yolo.Yolo_Detrector
+path: /home/alr_admin/david/real_robot/models/yolov10n.pt
+to_tensor: False
+device: cuda
