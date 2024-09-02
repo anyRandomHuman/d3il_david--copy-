@@ -35,7 +35,6 @@ def main(cfg: DictConfig) -> None:
     set_seed_everywhere(cfg.seed)
 
     # init wandb logger and config from hydra path
-    wandb.config = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
 
     run = wandb.init(
         project=cfg.wandb.project,

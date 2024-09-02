@@ -105,7 +105,7 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
 
 
 # @hydra.main(config_path="configs", config_name="real_robot_config.yaml")
-@hydra.main(config_path="configs", config_name="oc_pick_placing_config.yaml")
+@hydra.main(config_path="configs", config_name="pick_placing_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     np.random.seed(cfg.seed)
@@ -126,10 +126,10 @@ def main(cfg: DictConfig) -> None:
     agent = hydra.utils.instantiate(cfg.agents)
     agent.load_pretrained_model(
         "/home/alr_admin/david/praktikum/d3il_david/weights",
-        sv_name="pickPlacing_oc_box_100data_100epoch.pth",
+        sv_name="pickplacing_ddpm_100data_100epoch.pth",
     )
 
-    oc = True
+    oc = False
 
     env_sim = hydra.utils.instantiate(cfg.simulation)
 

@@ -94,7 +94,7 @@ class Timecat_DiffusionPolicy(nn.Module):
         visual_input: bool = False,
         device: str = "cpu",
     ):
-        super(DiffusionPolicy, self).__init__()
+        super(Timecat_DiffusionPolicy, self).__init__()
 
         self.visual_input = visual_input
         self.obs_encoder = hydra.utils.instantiate(obs_encoder).to(device)

@@ -160,3 +160,4 @@ simulation:
   resizes: [[128, 256], [128, 256]]
   crops: [[0,null, 100,370],[0,null, 100,370]]
   crop_resizes: [[512, 512], [512, 512]]
+  path: /media/alr_admin/ECB69036B69002EE/inference_record/${task_suite}

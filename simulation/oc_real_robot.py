@@ -12,6 +12,8 @@ from real_robot_env.robot.utils.keyboard import KeyManager
 
 import cv2
 import time
+import datetime
+from pathlib import Path
 
 from agents.utils.hdf5_to_img import preprocess_img
 
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class RealRobot(BaseSim):
-    def __init__(self, device: str, resizes, crops, crop_resizes, top_n):
+    def __init__(self, device: str, resizes, crops, crop_resizes, top_n, path):
         super().__init__(seed=-1, device=device)
 
         self.p4 = FrankaArm(
@@ -37,7 +39,7 @@ class RealRobot(BaseSim):
         assert self.p4_hand.connect(), f"Connection to {self.p4_hand.name} failed"
 
         self.cam0 = Azure(device_id=0)
-        self.cam1 = Azure(device_id=1)
+        self.cam1 = Azure(device_id=2)
         assert self.cam0.connect(), f"Connection to {self.cam0.name} failed"
         assert self.cam1.connect(), f"Connection to {self.cam1.name} failed"
 
@@ -48,6 +50,10 @@ class RealRobot(BaseSim):
         # crop in the order of y, x
         self.crops = crops
         self.crop_resizes = crop_resizes
+
+        self.task_record_path = path
+
+        self.create_record_dir(path)
 
     def test_agent(self, agent):
         logger.info("Starting trained model evaluation on real robot")
@@ -88,6 +94,8 @@ class RealRobot(BaseSim):
                 self.p4.reset()
                 self.p4_hand.reset()
 
+                self.create_record_dir(self.task_record_path)
+
         logger.info("Quitting evaluation")
 
         km.close()
@@ -99,8 +107,8 @@ class RealRobot(BaseSim):
         img0 = self.cam0.get_sensors()["rgb"][:, :, :3]  # remove depth
         img1 = self.cam1.get_sensors()["rgb"][:, :, :3]
 
-        # img0 = cv2.resize(img0, (512, 512))[:, 100:370]
-        # img1 = cv2.resize(img1, (512, 512))
+        img0_write = cv2.resize(img0, (512, 512))[:, 100:370]
+        img1_write = cv2.resize(img1, (512, 512))[:, 100:370]
 
         # cv2.imshow('0', img0)
         # cv2.imshow('1', img1)
@@ -140,7 +148,28 @@ class RealRobot(BaseSim):
         # )
         # self.i += 1
 
+        self.write_obs(img0_write, img1_write, masked0, masked1, self.path)
+
         return (processed_img0, processed_img1, masked0, masked1)
 
     def set_detector(self, det):
         self.detector = det
+
+    def write_obs(self, img0, img1, masked0, masked1, path):
+        cv2.imwrite(str(path / "cam0" / f"{self.i}.jpg"), img0)
+        cv2.imwrite(str(path / "cam1" / f"{self.i}.jpg"), img1)
+        cv2.imwrite(str(path / "mask0" / f"{self.i}.jpg"), masked0)
+        cv2.imwrite(str(path / "mask1" / f"{self.i}.jpg"), masked1)
+
+        self.i += 1
+
+    def create_record_dir(self, path):
+        t = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+        record_dir = Path(path) / t
+        Path.mkdir(record_dir)
+        Path.mkdir(record_dir / "cam0")
+        Path.mkdir(record_dir / "cam1")
+        Path.mkdir(record_dir / "mask0")
+        Path.mkdir(record_dir / "mask1")
+
+        self.path = record_dir
