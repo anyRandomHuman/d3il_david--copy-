@@ -47,7 +47,7 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
 
     if feature_path == "masked_imgs.hdf5":
         features = read_img_from_hdf5(
-            os.path.join(feature_path, "masked_imgs.hdf5"),
+            os.path.join(path, feature_path),
             0,
             -1,
             to_tensor=False,
@@ -100,12 +100,13 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
             range(num_action), pred_joint_poses[::, i], label="prediction"
         )  # Plot some data on the Axes.
         ax.plot(range(num_action), joint_poses[:-1, i], label="truth")
-        ax.legend()
+        if i == 0:
+            ax.legend()
     plt.show()
 
 
 # @hydra.main(config_path="configs", config_name="real_robot_config.yaml")
-@hydra.main(config_path="configs", config_name="pick_placing_config.yaml")
+@hydra.main(config_path="configs", config_name="oc_pick_placing_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     np.random.seed(cfg.seed)
@@ -124,24 +125,32 @@ def main(cfg: DictConfig) -> None:
     # cfg.task_suite = "cupStacking"
     cfg.if_sim = True
     agent = hydra.utils.instantiate(cfg.agents)
+    check_point = "pickPlacing_oc_box_all_time_cat_100data_100epoch"
     agent.load_pretrained_model(
         "/home/alr_admin/david/praktikum/d3il_david/weights",
-        sv_name="pickplacing_ddpm_100data_100epoch.pth",
+        sv_name=f"{check_point}.pth",
     )
 
-    oc = False
+    # oc = True
 
-    env_sim = hydra.utils.instantiate(cfg.simulation)
+    # if oc:
+    #     cfg.simulation.path = cfg.simulation.path + f"/{check_point}"
+    #     if not os.path.exists(cfg.simulation.path):
+    #         os.mkdir(cfg.simulation.path)
 
-    if oc:
-        det = hydra.utils.instantiate(cfg.detectors)
-        env_sim.set_detector(det)
+    # env_sim = hydra.utils.instantiate(cfg.simulation)
 
-    env_sim.test_agent(agent)
+    # if oc:
 
-    # path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-13_22_36"
+    #     det = hydra.utils.instantiate(cfg.detectors)
+    #     env_sim.set_detector(det)
+
+    # env_sim.test_agent(agent)
+
+    path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-17_14_39"
     # feature_path = "Bboxes.pt"
-    # test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
+    feature_path = "masked_imgs.hdf5"
+    test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
 
     log.info("done")
 

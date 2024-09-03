@@ -5,8 +5,9 @@ action_seq_size: ${window_size}
 obs_seq_len: 1
 
 model:
-  # _target_: agents.oc_ddpm_agent.DiffusionPolicy
   _target_: agents.oc_ddpm_agent.DiffusionPolicy
+  # Timecat_All_DiffusionPolicy
+  # Timecat_Obs_DiffusionPolicy
   _recursive_: false
 
   visual_input: True

@@ -3,3 +3,9 @@ pickplacing baseline:
     half success: 4
     success: 4
     notice: if the objects are slightly off the train data init pos, the robot could not correctly approach the objects
+
+pickplacing oc:
+    total: 3
+    half success: 1
+    success: 1
+    abalation study:s

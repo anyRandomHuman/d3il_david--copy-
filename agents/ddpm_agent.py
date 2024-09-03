@@ -94,7 +94,7 @@ class Timecat_DiffusionPolicy(nn.Module):
         visual_input: bool = False,
         device: str = "cpu",
     ):
-        super(DiffusionPolicy, self).__init__()
+        super(Timecat_DiffusionPolicy, self).__init__()
 
         self.visual_input = visual_input
         self.obs_encoder = hydra.utils.instantiate(obs_encoder).to(device)
@@ -336,14 +336,6 @@ class DiffusionAgent(BaseAgent):
                 train_loss.append(batch_loss)
 
                 wandb.log({"train_loss": batch_loss.item()})
-
-                # end = time()
-                # compute_time += end - start
-            # print(f"read time: {read_time}")
-            # print(f"compute time: {compute_time}")
-            # os.write(f, f"read time: {read_time}".encode())
-            # os.write(f, f"compute time: {compute_time}".encode())
-            # os.close(f)
 
             log.info(
                 "Epoch {}: Mean train loss is {}".format(num_epoch, batch_loss.item())
