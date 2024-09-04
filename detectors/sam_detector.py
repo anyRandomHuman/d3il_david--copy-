@@ -21,11 +21,15 @@ class Object_Detector:
         path="/home/alr_admin/david/praktikum/d3il_david/detector_models/sam_vit_b.pth",
         model_type="vit_b",
         sort="predicted_iou",
+        prompt=True
     ):
         self.to_tensor = to_tensor
         self.sam = sam_model_registry[model_type](checkpoint=path)
         self.sam.to(device=device)
-        self.mask_generator = SamAutomaticMaskGenerator(self.sam)
+        if not prompt:
+            self.mask_generator = SamAutomaticMaskGenerator(self.sam)
+        else:
+            self.mask_generator = SamPredictor(self.sam)
         self.sort = sort
 
     def predict(self, img):
@@ -33,6 +37,19 @@ class Object_Detector:
         outputs = self.mask_generator.generate(img)
         self.prediction = sorted(outputs, key=(lambda x: x[self.sort]), reverse=True)
 
+    def predict_with_boxes(self, img, boxes:torch.Tensor):
+        self.img = img
+        transformed_boxes = self.sam.transform.apply_boxes_torch(boxes, img.shape[:2])
+        masks, _, _ = self.mask_generator.predict_torch(
+            point_coords=None,
+            point_labels=None,
+            boxes=transformed_boxes,
+            multimask_output=False,
+        )
+        self.prediction = masks
+        if not self.to_tensor:
+            masks = masks.cpu().numpy()
+        return masks
     def get_box_feature(self, top_n):
         shape = tuple(self.prediction[0]["segmentation"].shape[0:2]) + (top_n,)
         features = np.zeros(shape)
