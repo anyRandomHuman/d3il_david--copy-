@@ -43,13 +43,13 @@ class Yolo_Detrector:
 
     def joint_feature(self, features):
         if self.to_tensor:
-            joint_mask = torch.zeros(features.shape[:-1])
-            for i in range(features.shape[-1]):
-                joint_mask = torch.logical_or(joint_mask, features[:, :, i])
+            joint_mask = torch.zeros(features.shape[1:])
+            for i in range(features.shape[0]):
+                joint_mask = torch.logical_or(joint_mask, features[i, :, :])
         if not self.to_tensor:
-            joint_mask = np.zeros(features.shape[:-1])
-            for i in range(features.shape[-1]):
-                joint_mask = np.logical_or(joint_mask, features[:, :, i])
+            joint_mask = np.zeros(features.shape[1:])
+            for i in range(features.shape[0]):
+                joint_mask = np.logical_or(joint_mask, features[i, :, :])
         return joint_mask
 
     def get_masked_img(self, feature):

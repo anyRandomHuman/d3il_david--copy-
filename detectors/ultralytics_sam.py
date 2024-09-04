@@ -42,6 +42,7 @@ class FastSAMDetector:
 
     def get_mask_feature(self):
         p = self.prediction[0]
+        return p.masks.data
 
     def get_Bbox(self):
         return self.prediction[0].boxes.xyxy
@@ -97,6 +98,9 @@ if __name__ == "__main__":
     )
     # bbox = fsam.get_box_feature()
     # joint_box = fsam.joint_feature(bbox)
-    img = fsam.get_masked_img()
+    # img = fsam.get_masked_img()
 
-    cv2.imwrite("test.jpg", img)
+    # cv2.imwrite("test.jpg", img)
+    mask = fsam.get_mask_feature()
+    joint_mask = fsam.joint_feature(mask)
+    
