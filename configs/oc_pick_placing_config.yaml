@@ -166,3 +166,4 @@ simulation:
   crops: [[0,null, 100,370],[0,null, 100,370]]
   crop_resizes: [[512, 512], [512, 512]]
   top_n: -1
+  path: /media/alr_admin/ECB69036B69002EE/inference_record/oc_${task_suite}

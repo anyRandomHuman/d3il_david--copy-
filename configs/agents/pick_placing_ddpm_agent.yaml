@@ -12,7 +12,9 @@ model:
   device: ${device}
 
   model:
-    _target_: agents.models.oc_ddpm.diffusion_policy.Diffusion
+    _target_: agents.models.oc_ddpm.diffusion_policy.Timecat_DiffusionPolicy
+    # Diffusion
+    # Timecat_DiffusionPolicy
     _recursive_: false
 
     state_dim: 256 #${obs_dim}

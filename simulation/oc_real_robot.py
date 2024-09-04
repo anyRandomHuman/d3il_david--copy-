@@ -15,7 +15,7 @@ import time
 import datetime
 from pathlib import Path
 
-from agents.utils.hdf5_to_img import preprocess_img
+from agents.utils.hdf5_to_img import crop_and_resize, process_cropeed
 
 DELTA_T = 0.034
 
@@ -95,6 +95,7 @@ class RealRobot(BaseSim):
                 self.p4_hand.reset()
 
                 self.create_record_dir(self.task_record_path)
+                self.i = 0
 
         logger.info("Quitting evaluation")
 
@@ -107,48 +108,40 @@ class RealRobot(BaseSim):
         img0 = self.cam0.get_sensors()["rgb"][:, :, :3]  # remove depth
         img1 = self.cam1.get_sensors()["rgb"][:, :, :3]
 
-        img0_write = cv2.resize(img0, (512, 512))[:, 100:370]
-        img1_write = cv2.resize(img1, (512, 512))[:, 100:370]
-
-        # cv2.imshow('0', img0)
-        # cv2.imshow('1', img1)
-        # cv2.waitKey(0)
-        processed_img0 = preprocess_img(
+        crop0 = crop_and_resize(
             img0,
             tuple(self.resizes[0]),
-            to_tensor=False,
             crop=self.crops[0],
-            crop_resize=self.crop_resizes[1],
+            crop_resize=self.crop_resizes[0],
         )
 
-        processed_img1 = preprocess_img(
+        crop1 = crop_and_resize(
             img1,
             tuple(self.resizes[1]),
-            to_tensor=False,
             crop=self.crops[1],
             crop_resize=self.crop_resizes[1],
         )
-        self.detector.predict(np.transpose(processed_img0, (1, 2, 0)).astype(np.uint8))
+
+        self.detector.predict(crop0)
         f0 = self.detector.get_feature(self.top_n)
         f0 = self.detector.joint_feature(f0)
         masked0 = self.detector.get_masked_img(f0)
 
-        self.detector.predict(np.transpose(processed_img1, (1, 2, 0)).astype(np.uint8))
+        self.detector.predict(crop0)
         f1 = self.detector.get_feature(self.top_n)
         f1 = self.detector.joint_feature(f1)
         masked1 = self.detector.get_masked_img(f1)
 
-        # cv2.imwrite(
-        #     f"/media/alr_admin/ECB69036B69002EE/inference_record/cam0_{self.i}.png",
-        #     processed_img0.transpose(1, 2, 0) * 255,
-        # )
-        # cv2.imwrite(
-        #     f"/media/alr_admin/ECB69036B69002EE/inference_record/cam1_{self.i}.png",
-        #     processed_img1.transpose(1, 2, 0) * 255,
-        # )
-        # self.i += 1
+        self.write_obs(
+            crop0,
+            crop1,
+            masked0,
+            masked1,
+            self.path,
+        )
 
-        self.write_obs(img0_write, img1_write, masked0, masked1, self.path)
+        processed_img0 = process_cropeed(crop0, to_tensor=False)
+        processed_img1 = process_cropeed(crop1, to_tensor=False)
 
         return (processed_img0, processed_img1, masked0, masked1)
 

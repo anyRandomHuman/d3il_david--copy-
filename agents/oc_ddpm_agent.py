@@ -85,7 +85,7 @@ class DiffusionPolicy(nn.Module):
         return self.parameters()
 
 
-class Timecat_DiffusionPolicy(nn.Module):
+class Timecat_All_DiffusionPolicy(nn.Module):
     def __init__(
         self,
         model: DictConfig,
@@ -94,7 +94,7 @@ class Timecat_DiffusionPolicy(nn.Module):
         visual_input: bool = False,
         device: str = "cpu",
     ):
-        super(Timecat_DiffusionPolicy, self).__init__()
+        super(Timecat_All_DiffusionPolicy, self).__init__()
 
         self.visual_input = visual_input
         self.obs_encoder = hydra.utils.instantiate(obs_encoder).to(device)
@@ -135,20 +135,79 @@ class Timecat_DiffusionPolicy(nn.Module):
             f1 = self.obs_encoder(obs_dict)
             f2 = self.obs_encoder_(obs_dict)
 
-            ##########################################
-            # baseline time cat
+            obs = torch.cat([f1, obs1, f2, obs2], dim=1)
 
-            obs = torch.cat([obs1, obs2], dim=1)
+            obs = obs.view(B, T, -1)
 
-            # plus mask
-            # obs = torch.cat([f1, obs1, f2, obs2], dim=1)
+        else:
+            obs = self.obs_encoder(inputs)
 
-            # plus mask 2
+        if if_train:
+            return self.model.loss(action, obs, goal)
 
-            # obs_1 = torch.cat([f1, obs1], dim=-1)
-            # obs_2 = torch.cat([f2, obs2], dim=-1)
+        # make prediction
+        pred = self.model(obs, goal)
 
-            # obs = torch.cat([obs_1, obs_2], dim=1)
+        return pred
+
+    def get_params(self):
+        return self.parameters()
+
+
+class Timecat_Obs_DiffusionPolicy(nn.Module):
+    def __init__(
+        self,
+        model: DictConfig,
+        obs_encoder: DictConfig,
+        obs_encoder_: DictConfig,
+        visual_input: bool = False,
+        device: str = "cpu",
+    ):
+        super(Timecat_Obs_DiffusionPolicy, self).__init__()
+
+        self.visual_input = visual_input
+        self.obs_encoder = hydra.utils.instantiate(obs_encoder).to(device)
+        self.obs_encoder_ = hydra.utils.instantiate(obs_encoder_).to(device)
+        self.model = hydra.utils.instantiate(model).to(device)
+
+    def forward(self, inputs, goal, action=None, if_train=False):
+        # encode state and visual inputs
+        # the encoder should be shared by all the baselines
+
+        if self.visual_input:
+            agentview_0, agentview_1, v0_obj_mask, v1_obj_mask = inputs
+
+            B, T, C, H1, W1 = agentview_0.size()
+            B, T, C, H2, W2 = agentview_1.size()
+
+            agentview_0 = agentview_0.view(B * T, C, H1, W1).cuda()
+            agentview_1 = agentview_1.view(B * T, C, H2, W2).cuda()
+            v0_obj_mask = v0_obj_mask.view(B * T, C, H1, W1).cuda()
+            v1_obj_mask = v1_obj_mask.view(B * T, C, H2, W2).cuda()
+
+            # state = state.view(B * T, -1)
+
+            obs_dict = {
+                "agentview_0": agentview_0,
+                "agentview_1": agentview_1,
+            }
+            # "robot_ee_pos": state}
+
+            obs1 = self.obs_encoder(obs_dict)
+            obs2 = self.obs_encoder_(obs_dict)
+
+            obs_dict = {
+                "v0_obj_mask": v0_obj_mask,
+                "v1_obj_mask": v1_obj_mask,
+            }
+
+            f1 = self.obs_encoder(obs_dict)
+            f2 = self.obs_encoder_(obs_dict)
+
+            obs_1 = torch.cat([f1, obs1], dim=-1)
+            obs_2 = torch.cat([f2, obs2], dim=-1)
+
+            obs = torch.cat([obs_1, obs_2], dim=1)
 
             obs = obs.view(B, T, -1)
 

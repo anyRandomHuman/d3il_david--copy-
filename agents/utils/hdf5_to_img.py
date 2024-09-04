@@ -90,6 +90,31 @@ def preprocess_img_no_crop(
     return img
 
 
+def crop_and_resize(
+    img,
+    resize=(256, 256),
+    crop_resize=(256, 256),
+    crop=[0, None, 0, None],
+):
+    img = cv2.resize(img, crop_resize)
+    img = img[crop[0] : crop[1], crop[2] : crop[3]]
+    img = cv2.resize(img, resize)
+    return img
+
+
+def process_cropeed(
+    img,
+    device="cuda",
+    to_tensor=True,
+):
+    img = img.transpose((2, 0, 1)) / 255.0
+
+    if to_tensor:
+        img = torch.from_numpy(img).to(device).float().unsqueeze(0)
+
+    return img
+
+
 if __name__ == "__main__":
     path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_space_hdf5/insertion/2024_07_04-16_02_30"
 
