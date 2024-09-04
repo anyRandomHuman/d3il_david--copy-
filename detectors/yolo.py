@@ -13,6 +13,10 @@ class Yolo_Detrector:
         self.img = img
         self.prediction = self.model.predict(img)
 
+    def track(self, img):
+        self.img = img
+        self.prediction = self.model.track(img, persist=True)
+
     def get_feature(self, top_n):
         # igonre top_n, always retrive all
         p = self.prediction[0]
@@ -58,3 +62,25 @@ class Yolo_Detrector:
         )
 
         return img.astype(np.uint8)
+
+    def get_img_with_segment(self):
+        return self.prediction[0].plot(
+            labels=False, boxes=False, conf=False, probs=False, color_mode="class"
+        )
+
+
+if __name__ == "__main__":
+    import pathlib
+
+    video_dir = pathlib.Path(
+        "/media/alr_admin/Data/atalay/new_data/pickPlacing/2024_08_05-17_09_11/images/Azure_0"
+    )
+    detector = Yolo_Detrector(
+        "/home/alr_admin/david/real_robot/models/yolov10n.pt", False, "cuda"
+    )
+    i = 0
+    for img in sorted(video_dir.iterdir(), key=lambda p: int(p.name.partition(".")[0])):
+        detector.track(img)
+        i += 1
+        if not i % 20:
+            detector.prediction[0].show()

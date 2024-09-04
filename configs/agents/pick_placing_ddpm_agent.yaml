@@ -5,14 +5,14 @@ action_seq_size: ${window_size}
 obs_seq_len: 1
 
 model:
-  _target_: agents.ddpm_agent.DiffusionPolicy
+  _target_: agents.ddpm_agent.Timecat_DiffusionPolicy
   _recursive_: false
 
   visual_input: True
   device: ${device}
 
   model:
-    _target_: agents.models.oc_ddpm.diffusion_policy.Timecat_DiffusionPolicy
+    _target_: agents.models.oc_ddpm.diffusion_policy.Diffusion
     # Diffusion
     # Timecat_DiffusionPolicy
     _recursive_: false
@@ -31,7 +31,7 @@ model:
     model:
       _target_: agents.models.oc_ddpm.oc_ddpm.DiffusionEncDec
       _recursive_: false
-      state_dim: 256 #${obs_dim}
+      state_dim: 512 #${obs_dim}
       action_dim: ${action_dim}
       goal_conditioned: False
       goal_seq_len: 10

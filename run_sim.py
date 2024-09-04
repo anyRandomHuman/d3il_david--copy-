@@ -106,7 +106,7 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
 
 
 # @hydra.main(config_path="configs", config_name="real_robot_config.yaml")
-@hydra.main(config_path="configs", config_name="oc_pick_placing_config.yaml")
+@hydra.main(config_path="configs", config_name="pick_placing_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     np.random.seed(cfg.seed)
@@ -125,7 +125,7 @@ def main(cfg: DictConfig) -> None:
     # cfg.task_suite = "cupStacking"
     cfg.if_sim = True
     agent = hydra.utils.instantiate(cfg.agents)
-    check_point = "pickPlacing_oc_box_all_time_cat_100data_100epoch"
+    check_point = "pickPlacing_timecat"
     agent.load_pretrained_model(
         "/home/alr_admin/david/praktikum/d3il_david/weights",
         sv_name=f"{check_point}.pth",
