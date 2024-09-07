@@ -1,23 +1,30 @@
 from ultralytics import YOLO
 import torch
 import numpy as np
+from detectors.obj_detector import Object_Detector
 
 
-class Yolo_Detrector:
+class Yolo_Detrector(Object_Detector):
     def __init__(self, path, to_tensor, device) -> None:
+        super().__init__(path=path, to_tensor=to_tensor, device=device)
+
         self.model = YOLO(path)
         self.to_tensor = to_tensor
         self.device = device
 
     def predict(self, img):
-        self.img = img
+        super().predict(img)
         self.prediction = self.model.predict(img)
 
     def track(self, img):
         self.img = img
         self.prediction = self.model.track(img, persist=True)
 
-    def get_feature(self, top_n):
+    def get_mask_feature(self):
+        # no mask, return box instead
+        return self.get_box_feature()
+
+    def get_box_feature(self):
         # igonre top_n, always retrive all
         p = self.prediction[0]
         num_boxes = p.boxes.shape[0]
@@ -41,27 +48,19 @@ class Yolo_Detrector:
         else:
             return box.numpy(box)
 
-    def joint_feature(self, features):
-        if self.to_tensor:
-            joint_mask = torch.zeros(features.shape[1:])
-            for i in range(features.shape[0]):
-                joint_mask = torch.logical_or(joint_mask, features[i, :, :])
-        if not self.to_tensor:
-            joint_mask = np.zeros(features.shape[1:])
-            for i in range(features.shape[0]):
-                joint_mask = np.logical_or(joint_mask, features[i, :, :])
-        return joint_mask
+    # def get_masked_img(self):
+    #     return self.prediction[0].plot(
+    #         labels=False, boxes=False, conf=False, probs=False, color_mode="class"
+    #     )
+    #     # if self.to_tensor:
+    #     #     feature = torch.from_numpy(feature)
+    #     # img = np.where(
+    #     #     np.expand_dims(feature, -1).repeat(3, -1),
+    #     #     self.img,
+    #     #     np.zeros(self.img.shape),
+    #     # )
 
-    def get_masked_img(self, feature):
-        if self.to_tensor:
-            feature = torch.from_numpy(feature)
-        img = np.where(
-            np.expand_dims(feature, -1).repeat(3, -1),
-            self.img,
-            np.zeros(self.img.shape),
-        )
-
-        return img.astype(np.uint8)
+    #     return img.astype(np.uint8)
 
     def get_img_with_segment(self):
         return self.prediction[0].plot(

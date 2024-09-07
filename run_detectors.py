@@ -15,28 +15,15 @@ import time
 import datetime
 from pathlib import Path
 
-from agents.utils.hdf5_to_img import crop_and_resize, process_cropeed
+from agents.utils.hdf5_to_img import preprocess_img
 
 DELTA_T = 0.034
 
 logger = logging.getLogger(__name__)
 
 
-class RealRobot(BaseSim):
-    def __init__(self, device: str, resizes, crops, crop_resizes, top_n, path):
-        super().__init__(seed=-1, device=device)
-
-        self.p4 = FrankaArm(
-            name="p4",
-            ip_address="141.3.53.154",
-            port=50053,
-            control_type=ControlType.HYBRID_JOINT_IMPEDANCE_CONTROL,
-            hz=100,
-        )
-        assert self.p4.connect(), f"Connection to {self.p4.name} failed"
-
-        self.p4_hand = FrankaHand(name="p4_hand", ip_address="141.3.53.154", port=50054)
-        assert self.p4_hand.connect(), f"Connection to {self.p4_hand.name} failed"
+class RealRobot():
+    def __init__(self, device: str, resizes, crops, crop_resizes, path):
 
         self.cam0 = Azure(device_id=0)
         self.cam1 = Azure(device_id=2)
@@ -44,7 +31,6 @@ class RealRobot(BaseSim):
         assert self.cam1.connect(), f"Connection to {self.cam1.name} failed"
 
         self.i = 0
-        self.top_n = top_n
 
         self.resizes = resizes
         # crop in the order of y, x
@@ -52,7 +38,6 @@ class RealRobot(BaseSim):
         self.crop_resizes = crop_resizes
 
         self.task_record_path = path
-
         self.create_record_dir(path)
 
     def test_agent(self, agent):
@@ -91,11 +76,7 @@ class RealRobot(BaseSim):
                 logger.info("Evaluation done. Resetting robots")
                 # time.sleep(1)
 
-                self.p4.reset()
-                self.p4_hand.reset()
-
                 self.create_record_dir(self.task_record_path)
-                self.i = 0
 
         logger.info("Quitting evaluation")
 
@@ -108,52 +89,45 @@ class RealRobot(BaseSim):
         img0 = self.cam0.get_sensors()["rgb"][:, :, :3]  # remove depth
         img1 = self.cam1.get_sensors()["rgb"][:, :, :3]
 
-        crop0 = crop_and_resize(
+        img0_write = cv2.resize(img0, (512, 512))[:, 100:370]
+        img1_write = cv2.resize(img1, (512, 512))[:, 100:370]
+
+        self.write_obs(img0_write, img1_write, self.path)
+
+        # cv2.imshow('0', img0)
+        # cv2.imshow('1', img1)
+        # cv2.waitKey(0)
+        processed_img0 = preprocess_img(
             img0,
             tuple(self.resizes[0]),
+            to_tensor=False,
             crop=self.crops[0],
-            crop_resize=self.crop_resizes[0],
+            crop_resize=self.crop_resizes[1],
         )
 
-        crop1 = crop_and_resize(
+        processed_img1 = preprocess_img(
             img1,
             tuple(self.resizes[1]),
+            to_tensor=False,
             crop=self.crops[1],
             crop_resize=self.crop_resizes[1],
         )
 
-        self.detector.predict(crop0)
-        f0 = self.detector.get_mask_feature()
-        f0 = self.detector.joint_feature(f0)
-        masked0 = self.detector.get_masked_img(f0)
+        # cv2.imwrite(
+        #     f"/media/alr_admin/ECB69036B69002EE/inference_record/cam0_{self.i}.png",
+        #     processed_img0.transpose(1, 2, 0) * 255,
+        # )
+        # cv2.imwrite(
+        #     f"/media/alr_admin/ECB69036B69002EE/inference_record/cam1_{self.i}.png",
+        #     processed_img1.transpose(1, 2, 0) * 255,
+        # )
+        # self.i += 1
 
-        self.detector.predict(crop0)
-        f1 = self.detector.get_mask_feature()
-        f1 = self.detector.joint_feature(f1)
-        masked1 = self.detector.get_masked_img(f1)
+        return (processed_img0, processed_img1)
 
-        self.write_obs(
-            crop0,
-            crop1,
-            masked0,
-            masked1,
-            self.path,
-        )
-
-        processed_img0 = process_cropeed(crop0, to_tensor=False)
-        processed_img1 = process_cropeed(crop1, to_tensor=False)
-
-        return (processed_img0, processed_img1, masked0, masked1)
-
-    def set_detector(self, det):
-        self.detector = det
-
-    def write_obs(self, img0, img1, masked0, masked1, path):
+    def write_obs(self, img0, img1, path):
         cv2.imwrite(str(path / "cam0" / f"{self.i}.jpg"), img0)
         cv2.imwrite(str(path / "cam1" / f"{self.i}.jpg"), img1)
-        cv2.imwrite(str(path / "mask0" / f"{self.i}.jpg"), masked0)
-        cv2.imwrite(str(path / "mask1" / f"{self.i}.jpg"), masked1)
-
         self.i += 1
 
     def create_record_dir(self, path):
@@ -162,7 +136,4 @@ class RealRobot(BaseSim):
         Path.mkdir(record_dir)
         Path.mkdir(record_dir / "cam0")
         Path.mkdir(record_dir / "cam1")
-        Path.mkdir(record_dir / "mask0")
-        Path.mkdir(record_dir / "mask1")
-
         self.path = record_dir

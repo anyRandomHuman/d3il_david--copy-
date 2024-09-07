@@ -20,7 +20,9 @@ OmegaConf.register_new_resolver("add", lambda *numbers: sum(numbers))
 torch.cuda.empty_cache()
 
 
-def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
+def test_agent_on_train_data(
+    path, agent, feature_path=None, resize=(128, 256), plot=True
+):
     cam_resizes = [resize, resize]
     joint_poses = torch.load(path + "/leader_joint_pos.pt")
     if os.path.exists(os.path.join(path, "imgs.hdf5")):
@@ -93,6 +95,9 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
         pred_gripper_command = pred_action[-1]
         pred_joint_poses[i] = pred_joint_pos
 
+    if not plot:
+        return pred_joint_poses, joint_poses
+
     fig, axises = plt.subplots(7)
     for i in range(7):
         ax = axises[i]
@@ -105,8 +110,11 @@ def test_agent_on_train_data(path, agent, feature_path=None, resize=(128, 256)):
     plt.show()
 
 
+# def compute_loss(loss, task_path):
+
+
 # @hydra.main(config_path="configs", config_name="real_robot_config.yaml")
-@hydra.main(config_path="configs", config_name="pick_placing_config.yaml")
+@hydra.main(config_path="configs", config_name="oc_pick_placing_config.yaml")
 def main(cfg: DictConfig) -> None:
 
     np.random.seed(cfg.seed)
@@ -125,32 +133,41 @@ def main(cfg: DictConfig) -> None:
     # cfg.task_suite = "cupStacking"
     cfg.if_sim = True
     agent = hydra.utils.instantiate(cfg.agents)
-    check_point = "pickPlacing_timecat"
+    check_point = "pickPlacing_oc_box_all_time_cat_100data_100epoch"
     agent.load_pretrained_model(
         "/home/alr_admin/david/praktikum/d3il_david/weights",
         sv_name=f"{check_point}.pth",
     )
 
-    # oc = True
+    ########################################
+    # this part of code is for inference
 
-    # if oc:
-    #     cfg.simulation.path = cfg.simulation.path + f"/{check_point}"
-    #     if not os.path.exists(cfg.simulation.path):
-    #         os.mkdir(cfg.simulation.path)
+    oc = cfg.oc
 
-    # env_sim = hydra.utils.instantiate(cfg.simulation)
+    if oc:
+        cfg.simulation.path = cfg.simulation.path + f"/{check_point}"
+        if not os.path.exists(cfg.simulation.path):
+            os.mkdir(cfg.simulation.path)
 
-    # if oc:
+    env_sim = hydra.utils.instantiate(cfg.simulation)
 
-    #     det = hydra.utils.instantiate(cfg.detectors)
-    #     env_sim.set_detector(det)
+    if oc:
 
-    # env_sim.test_agent(agent)
+        det = hydra.utils.instantiate(cfg.detectors)
+        env_sim.set_detector(det)
 
-    path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-17_14_39"
+    env_sim.test_agent(agent)
+
+    #######################################
+    # this part of code is for testing agent on training data, comment this when trying to inference
+
+    # path = "/media/alr_admin/ECB69036B69002EE/Data_less_obs_new_hdf5_downsampled/pickPlacing/2024_08_05-17_14_39"
+
+    # # different
     # feature_path = "Bboxes.pt"
-    feature_path = "masked_imgs.hdf5"
-    test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
+    # # feature_path = "masked_imgs.hdf5"
+    # # feature_path = ""
+    # test_agent_on_train_data(path, agent, feature_path=feature_path, resize=(128, 256))
 
     log.info("done")
 

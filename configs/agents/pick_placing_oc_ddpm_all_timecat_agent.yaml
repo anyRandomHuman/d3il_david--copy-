@@ -1,11 +1,12 @@
-_target_: agents.ddpm_agent.DiffusionAgent
+_target_: agents.oc_ddpm_agent.DiffusionAgent
 _recursive_: false
 
 action_seq_size: ${window_size}
 obs_seq_len: 1
 
 model:
-  _target_: agents.ddpm_agent.Timecat_DiffusionPolicy
+  # _target_: agents.oc_ddpm_agent.DiffusionPolicy
+  _target_: agents.oc_ddpm_agent.Timecat_All_DiffusionPolicy
   _recursive_: false
 
   visual_input: True
@@ -13,8 +14,6 @@ model:
 
   model:
     _target_: agents.models.oc_ddpm.diffusion_policy.Diffusion
-    # Diffusion
-    # Timecat_DiffusionPolicy
     _recursive_: false
 
     state_dim: 256 #${obs_dim}
@@ -31,7 +30,7 @@ model:
     model:
       _target_: agents.models.oc_ddpm.oc_ddpm.DiffusionEncDec
       _recursive_: false
-      state_dim: 256 #${obs_dim}
+      state_dim: 512 #${obs_dim}
       action_dim: ${action_dim}
       goal_conditioned: False
       goal_seq_len: 10
@@ -72,6 +71,9 @@ model:
         agentview_0:
           shape: [3, 256, 128]
           type: rgb
+        v0_obj_mask:
+          shape: [3, 256, 128]
+          type: rgb
     rgb_model:
       _target_: agents.module.vision.get_model.get_resnet
       input_shape: [3, 256, 128]
@@ -90,6 +92,9 @@ model:
       # acceptable types: rgb, low_dim
       obs:
         agentview_1:
+          shape: [3, 256, 128]
+          type: rgb
+        v1_obj_mask:
           shape: [3, 256, 128]
           type: rgb
     rgb_model:

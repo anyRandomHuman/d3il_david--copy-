@@ -440,7 +440,7 @@ class DiffusionAgent(BaseAgent):
         # scale data if necessarry, otherwise the scaler will return unchanged values
 
         if if_vision:
-            bp_image, inhand_image = state
+            bp_image, inhand_image= state
 
             bp_image = torch.from_numpy(bp_image).to(self.device).float().unsqueeze(0)
             inhand_image = (

@@ -116,6 +116,7 @@ train_action_seq: 5
 inference_action_seq: ${train_action_seq}
 cam_num: 2
 to_tensor: True
+oc: false
 
 # Dataset
 trainset:

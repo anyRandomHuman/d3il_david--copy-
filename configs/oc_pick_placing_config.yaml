@@ -1,9 +1,10 @@
 defaults:
- - agents: pick_placing_oc_ddpm_agent
+#  - agents: pick_placing_oc_ddpm_agent
+# pick_placing_oc_ddpm_obs_timecat_agent 
+# pick_placing_oc_ddpm_all_timecat_agent
+ - agents: pick_placing_oc_ddpm_all_timecat_agent
  - detectors: yolo
-#  - agents: pick_placing_oc_ddpm_timecat_agent
-  # - agents: mamba_cross_agent
-#  - agents: mamba_only_agent
+
 
 # agent_name: mamba_cross
 #agent_name: mamba_only
@@ -116,8 +117,9 @@ window_size: ${add:${obs_seq},4}
 obs_seq: 1
 train_action_seq: 5
 inference_action_seq: ${train_action_seq}
-
 to_tensor: True
+oc: true
+
 
 # Dataset
 trainset:

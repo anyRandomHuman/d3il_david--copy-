@@ -114,6 +114,7 @@ inference_action_seq: ${train_action_seq}
 cam_num: 2
 obj_centric: 0
 to_tensor: True
+oc: false
 
 # Dataset
 trainset:
